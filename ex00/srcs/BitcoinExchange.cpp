@@ -6,7 +6,7 @@
 /*   By: ajeanne <ajeanne@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/24 21:42:15 by ajeanne           #+#    #+#             */
-/*   Updated: 2023/09/25 02:14:04 by ajeanne          ###   ########.fr       */
+/*   Updated: 2023/09/25 05:19:54 by ajeanne          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,30 +139,33 @@ void    BitcoinExchange::check(std::string const & txt)  {
 bool    BitcoinExchange::isDateOk(std::string const & date) {
     std::string tmpS;
     int         tmpI;
+    int         tmpI1;
+    int         tmpI2;
     
     if (date.size() < 10)
-        return (false);
-    if (date[4] != '-' || date[7] != '-')
         return (false);
     tmpS = date.substr(0, 4);    
     std::istringstream  iss(tmpS);
     if (!(iss >> tmpI))
         return (false);
-    if (tmpI > 2024 || tmpI < 0)
+    if (tmpI < 0)
         return (false);
     tmpS = date.substr(5, 2);
     std::istringstream  oss(tmpS);    
-    if (!(oss >> tmpI))
+    if (!(oss >> tmpI1))
         return (false);
-    if (tmpI > 31 || tmpI < 0)
+    if (tmpI1 > 31 || tmpI1 < 0)
         return (false);
     tmpS = date.substr(8, 2); 
     std::istringstream  pss(tmpS);
-    if (!(pss >> tmpI))
+    if (!(pss >> tmpI2))
         return (false);
-    if (tmpI > 31 || tmpI < 0)
+    if (tmpI2 > 31 || tmpI2 < 0)
         return (false);
-    
+    if ((tmpI < 2009) || (tmpI == 2009 && tmpI1 == 01 && tmpI2 < 02))
+        return (false);
+    if (tmpI > 2024)
+        return (false);
     return (true);
 }
 
@@ -171,7 +174,77 @@ void    BitcoinExchange::printCheck(std::string const & date, float value)   {
     for (std::map<std::string, float>::iterator it = _exchange.begin(); it != _exchange.end(); ++it)    {        
         if (it->first == date)  {
             std::cout << date << " => " << value << " = " << value * it->second << std::endl;
-            break;
+            return;
         }
     }
+    
+
+    int sep1 = date.find('-');
+    std::map<std::string, float>::iterator itt = _exchange.end();
+    itt--;
+    
+    if (atoi(_exchange.begin()->first.substr(0, 4).c_str()) > atoi(date.substr(0, sep1).c_str()))  {
+        std::cout << date << " => " << value << " = " << value * _exchange.begin()->second << std::endl;
+        return;
+    }
+    else if (atoi(itt->first.substr(0, 4).c_str()) < atoi(date.substr(0, sep1).c_str()))  {
+        std::cout << date << " => " << value << " = " << value * _exchange.end()->second << std::endl;
+        return;
+    }
+    
+    std::map<std::string, float>::iterator itmp;
+    std::map<std::string, float>::iterator last = _exchange.end();
+    
+    last--;
+
+    for (std::map<std::string, float>::iterator it = _exchange.begin(); it != _exchange.end(); ++it)    {
+        if (it->first.substr(0, 4) == date.substr(0,4) && it->first.substr(5, 2) == date.substr(5,2)) {
+            if (it == last) {
+                std::cout << date << " => " << value << " = " << value * it->second << std::endl;
+                return;
+            }
+            else if (atoi(it->first.substr(8, 2).c_str()) < atoi(date.substr(8, 2).c_str()))    {
+                itmp = it;
+            }
+            else    {
+                std::cout << date << " => " << value << " = " << value * it->second << std::endl;
+                return;
+            }
+        }
+    }
+
+    // for (std::map<std::string, float>::iterator it = _exchange.begin(); it != _exchange.end(); ++it)    {
+    //     if (it->first.substr(0, 4) == date.substr(0,4)) {
+    //         std::cout << "lul" << std::endl;
+    //     }
+    // }
+    
+    // for (std::map<std::string, float>::iterator it = _exchange.begin(); it != _exchange.end(); ++it)    {        
+    //     if (it->first.substr(0, 4) == date.substr(0, sep1))  {
+    //         if (itt->first.substr(0, 4) == date.substr(0, sep1) && atoi(itt->first.substr(5, 2).c_str()) < atoi(date.substr(sep1 + 1, 2).c_str()))  {
+    //             std::cout << date << " => " << value << " = " << value * _exchange.end()->second << std::endl;
+    //             return;
+    //         }
+    //         if (it->first.substr(5, 2) == date.substr(sep1 + 1, 2))  {
+    //             if (itt->first.substr(0, 4) == date.substr(0, sep1) && atoi(itt->first.substr(5, 2).c_str()) == atoi(date.substr(sep1 + 1, 2).c_str()) && atoi(itt->first.substr(8, 2).c_str()) <= atoi(date.substr(sep2 + 1, 2).c_str()))  {
+    //                 std::cout << date << " => " << value << " = " << value * _exchange.end()->second << std::endl;
+    //                 return;
+    //             }
+    //             // TEST
+    //             if (it->first.substr(0 , 4) == "2011" && it->first.substr(sep1 + 1, 2) == "01")
+    //                 std::cout << it->first << " " << it->second << std::endl;
+    //             // TEST
+    //             if (it->first.substr(0, 4) == date.substr(0, sep1) && it->first.substr(5, 2) == date.substr(sep1 + 1, 2) && (atoi(it->first.substr(8, 2).c_str()) < atoi(date.substr(sep2 + 1, 2).c_str())))    {
+    //                 itmp = it;
+    //                 itmp++;
+    //                 if (atoi(itmp->first.substr(8, 2).c_str()) > atoi(date.substr(sep2 + 1, 2).c_str()))
+    //                     std::cout << date << " => " << value << " = " << value * itmpb->second << std::endl;      
+    //             }
+    //             if (it->first.substr(8, 2) == date.substr(sep2 + 1, 2))  {
+    //                 std::cout << date << " => " << value << " = " << value * it->second << std::endl;
+    //             }
+    //             itmpb = it;
+    //         }
+    //     }
+    // }
 }

@@ -6,7 +6,7 @@
 /*   By: ajeanne <ajeanne@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/24 21:29:08 by ajeanne           #+#    #+#             */
-/*   Updated: 2023/09/25 02:09:10 by ajeanne          ###   ########.fr       */
+/*   Updated: 2023/09/25 02:49:24 by ajeanne          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include <exception>
 #include <limits.h>
 #include <float.h>
+#include <stdlib.h>
 
 class BitcoinExchange   {
     public:

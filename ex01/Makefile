@@ -6,12 +6,12 @@
 #    By: ajeanne <ajeanne@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/01/30 20:34:23 by ajeanne           #+#    #+#              #
-#    Updated: 2023/09/24 22:40:52 by ajeanne          ###   ########.fr        #
+#    Updated: 2023/09/25 08:44:03 by ajeanne          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 
-NAME = btc
+NAME = RPN
 
 SRCS_DIR =	$(shell find srcs -type d)
 INC_DIR =	includes
@@ -23,7 +23,7 @@ vpath %.cpp $(foreach dir, $(SRCS_DIR), $(dir):)
 OBJS =	$(addprefix $(OBJS_DIR)/, $(SRCS:%.cpp=%.o))
 
 SRCS =	main.cpp	\
-		BitcoinExchange.cpp
+		RPN.cpp
 
 CC =				c++
 CFLAGS =			-Wall -Werror -Wextra -std=c++98 -g3

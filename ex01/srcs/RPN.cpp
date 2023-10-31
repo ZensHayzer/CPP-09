@@ -6,7 +6,7 @@
 /*   By: ajeanne <ajeanne@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/25 05:53:31 by ajeanne           #+#    #+#             */
-/*   Updated: 2023/09/25 08:42:33 by ajeanne          ###   ########.fr       */
+/*   Updated: 2023/10/31 12:34:12 by ajeanne          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,6 +82,11 @@ void    RPN::fillVec(std::string const & entry)  {
 int RPN::calculate(int a, int b, char o) {
     switch (o)
     {
+    case 's':
+    {
+        std::cout << "The result is : " << a << std::endl;
+        return (a);
+    }
     case '+':
         return (a + b);
     case '-':
@@ -108,8 +113,15 @@ void    RPN::doCalc(std::string const & entry)   {
 
     nb1 = _numbers.top();
     _numbers.pop();
-    nb2 = _numbers.top();
-    _numbers.pop();
+    if (_numbers.size() > 0)    {
+        nb2 = _numbers.top();
+        _numbers.pop();      
+    }
+    else
+    {
+        res = calculate(nb1, 0, 's');
+        return ;
+    }
     res = calculate(nb1, nb2, _operators.top());
     _operators.pop();
     while(_numbers.size() >= 2) {

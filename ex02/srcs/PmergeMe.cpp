@@ -6,7 +6,7 @@
 /*   By: ajeanne <ajeanne@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/25 10:05:26 by ajeanne           #+#    #+#             */
-/*   Updated: 2023/10/31 02:27:50 by ajeanne          ###   ########.fr       */
+/*   Updated: 2023/10/31 10:11:47 by ajeanne          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,8 +111,8 @@ void    PmergeMe::fillCont(std::string const & entry)   {
 	mergeListD(_dNumbers);
 	timeUsedE = clock();
 	_dtime = static_cast<double>(timeUsedE - timeUsedS) / CLOCKS_PER_SEC * 1000000;
-	std::cout << "Time to process a range of " << _nbEntry << " elements with std::list : " << _vtime << " us" << std::endl;
-	std::cout << "Time to process a range of " << _nbEntry << " elements with std::vector : " << _dtime << " us" << std::endl;
+	std::cout << "Time to process a range of " << _nbEntry << " elements with std::vector : " << _vtime << " us" << std::endl;
+	std::cout << "Time to process a range of " << _nbEntry << " elements with std::deque : " << _dtime << " us" << std::endl;
 }
 
 void    PmergeMe::createPairsV(std::vector<int> & vec) {
@@ -280,7 +280,6 @@ std::deque<std::pair<int, int> >   PmergeMe::fordJohnsonSortD(std::deque<std::pa
 	}
 	if (vec.size() % 2 == 1)	{
 		last = vec[vec.size() - 1];
-		std::cout << "LAST = " << last.first << " " << last.second << std::endl;
 		for (std::deque<std::pair<int, int> >::iterator it = tmp2.begin(); it != tmp2.end(); ++it)	{
 			if (it + 1 == tmp2.end())	{
 				tmp2.push_back(last);

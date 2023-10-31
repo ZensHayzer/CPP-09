@@ -6,7 +6,7 @@
 /*   By: ajeanne <ajeanne@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/25 09:57:08 by ajeanne           #+#    #+#             */
-/*   Updated: 2023/10/06 18:46:51 by ajeanne          ###   ########.fr       */
+/*   Updated: 2023/10/31 02:25:38 by ajeanne          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <ctime>
 #include <utility>
+#include <deque>
 
 class PmergeMe  {
 	public:
@@ -34,7 +35,11 @@ class PmergeMe  {
 		PmergeMe    &operator=(PmergeMe const & src);
 
 		std::string         getEntry() const;
-		std::list<int>      getLNumbers() const;
+		std::string         getSorted() const;
+		int			        getNbEntry() const;
+		double				getDTime() const;
+		double				getVTime() const;
+		std::deque<int>     getDNumbers() const;
 		std::vector<int>    getVNumbers() const;
 
 		void                checkEntry(std::string const & entry);
@@ -42,15 +47,16 @@ class PmergeMe  {
 		
 		// For Vector
 		void    createPairsV(std::vector<int> & vec);
-		std::vector<std::pair<int, int> >    fordJohnsonSort(std::vector<std::pair<int, int> > & vec);
+		std::vector<std::pair<int, int> >    fordJohnsonSortV(std::vector<std::pair<int, int> > & vec);
+		void	swapPair(std::pair<int, int> & p);
 		void    printResV(std::vector<int> vPrint);
-		void    mergeList(std::vector<int> & vec);
+		void    mergeListV(std::vector<int> & vec);
 		
-		// For List
-		void    mergeL(std::vector<int> & vec, int left, int mid, int right);
-		void    divSortL(std::vector<int> & vec, int left, int right);
-		void    mergeSortL(std::vector<int> & vec);
-		void    printResL();
+		// For Deque
+		void    createPairsD(std::deque<int> & vec);
+		std::deque<std::pair<int, int> >    fordJohnsonSortD(std::deque<std::pair<int, int> > & vec);
+		void    printResD(std::deque<int> dPrint);
+		void    mergeListD(std::deque<int> & vec);
 		
 		class UnauthorizedChar : public std::exception {
 			public:
@@ -69,10 +75,11 @@ class PmergeMe  {
 		int                 _nbEntry;
 		std::string         _entry;
 		std::string         _sorted;
-		std::list<int>      _lNumbers;
+		std::deque<int>     _dNumbers;
 		std::vector<int>    _vNumbers;
 		std::vector<std::pair<int, int> >    _pairsV;
-		double              _ltime;
+		std::deque<std::pair<int, int> >     _pairsD;
+		double              _dtime;
 		double              _vtime;
 		
 };

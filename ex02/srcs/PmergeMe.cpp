@@ -6,7 +6,7 @@
 /*   By: ajeanne <ajeanne@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/25 10:05:26 by ajeanne           #+#    #+#             */
-/*   Updated: 2023/10/10 15:07:15 by ajeanne          ###   ########.fr       */
+/*   Updated: 2023/10/31 02:27:50 by ajeanne          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,8 +31,13 @@ PmergeMe::~PmergeMe()   {
 PmergeMe    &PmergeMe::operator=(PmergeMe const & src)  {
 	if (this != &src)   {
 		_entry = src.getEntry();
-		_lNumbers.insert(_lNumbers.end(), src._lNumbers.begin(), src._lNumbers.end());
+		_pairsV.insert(_pairsV.end(), src._pairsV.begin(), src._pairsV.end());
+		_pairsD.insert(_pairsD.end(), src._pairsD.begin(), src._pairsD.end());
+		_dNumbers.insert(_dNumbers.end(), src._dNumbers.begin(), src._dNumbers.end());
 		_vNumbers.insert(_vNumbers.end(), src._vNumbers.begin(), src._vNumbers.end());
+		_nbEntry = src.getNbEntry();
+		_vtime = src.getVTime();
+		_dtime = src.getDTime();
 	}
 
 	return (*this);
@@ -42,8 +47,24 @@ std::string PmergeMe::getEntry() const  {
 	return (_entry);
 }
 
-std::list<int>  PmergeMe::getLNumbers() const {
-	return (_lNumbers);
+std::string PmergeMe::getSorted() const  {
+	return (_sorted);
+}
+
+int PmergeMe::getNbEntry() const  {
+	return (_nbEntry);
+}
+
+double PmergeMe::getDTime() const  {
+	return (_dtime);
+}
+
+double PmergeMe::getVTime() const  {
+	return (_vtime);
+}
+
+std::deque<int>  PmergeMe::getDNumbers() const {
+	return (_dNumbers);
 }
 
 std::vector<int>    PmergeMe::getVNumbers() const   {
@@ -62,7 +83,8 @@ void    PmergeMe::checkEntry(std::string const & entry)   {
 void    PmergeMe::fillCont(std::string const & entry)   {
 	int cnt = 0, tmp = 0;
 	std::vector<std::pair<int, int> >   tmp2;
-	// clock_t timeUsedS, timeUsedE;
+	clock_t timeUsedS, timeUsedE;
+	(void)_nbEntry;
 	
 	checkEntry(entry);
 	for (size_t i = 0; i < entry.size(); i++)   {
@@ -70,7 +92,7 @@ void    PmergeMe::fillCont(std::string const & entry)   {
 			std::istringstream   iss(entry.substr(cnt, i - cnt));
 			
 			if (iss >> tmp) {
-				_lNumbers.push_back(tmp);
+				_dNumbers.push_back(tmp);
 				_vNumbers.push_back(tmp);
 			}
 			else
@@ -81,23 +103,16 @@ void    PmergeMe::fillCont(std::string const & entry)   {
 				i++;
 		}
 	}
-	mergeList(_vNumbers);
-	//for (std::vector<std::pair<int, int> >::iterator it = tmp2.begin(); it != tmp2.end(); ++it)    {
-	//	std::cout << "FIN " << it->first << " " << it->second << std::endl;
-	//}
-	//std::cout << "////////////////////////////////" << std::endl;
-	// std::cout << "Before : " << _entry << std::endl;
-	// timeUsedS = clock();
-	// printResV(mergeSortV(_vNumbers));
-	// timeUsedE = clock();
-	// _ltime = static_cast<double>(timeUsedE - timeUsedS) / CLOCKS_PER_SEC * 1000000;
-	// timeUsedS = clock();
-	// // mergeInsertV(_vNumbers);
-	// timeUsedE = clock();
-	// _vtime = static_cast<double>(timeUsedE - timeUsedS) / CLOCKS_PER_SEC * 1000000;
-	// // printResV();
-	// std::cout << "Time to process a range of " << _nbEntry << " elements with std::list : " << _ltime << " us" << std::endl;
-	// std::cout << "Time to process a range of " << _nbEntry << " elements with std::vector : " << _vtime << " us" << std::endl;
+	timeUsedS = clock();
+	mergeListV(_vNumbers);
+	timeUsedE = clock();
+	_vtime = static_cast<double>(timeUsedE - timeUsedS) / CLOCKS_PER_SEC * 1000000;
+	timeUsedS = clock();
+	mergeListD(_dNumbers);
+	timeUsedE = clock();
+	_dtime = static_cast<double>(timeUsedE - timeUsedS) / CLOCKS_PER_SEC * 1000000;
+	std::cout << "Time to process a range of " << _nbEntry << " elements with std::list : " << _vtime << " us" << std::endl;
+	std::cout << "Time to process a range of " << _nbEntry << " elements with std::vector : " << _dtime << " us" << std::endl;
 }
 
 void    PmergeMe::createPairsV(std::vector<int> & vec) {
@@ -112,95 +127,181 @@ void    PmergeMe::createPairsV(std::vector<int> & vec) {
 	}
 }
 
-int	tourIN = 0;
-int tourOUT = 0;
+void    PmergeMe::createPairsD(std::deque<int> & vec) {
+	for (std::deque<int>::iterator it = vec.begin(); it != vec.end(); ++it) {
+		if (it + 1 != vec.end())    {
+			_pairsD.push_back(std::make_pair(*it, *(it + 1)));
+			++it;
+		}
+		else    {
+			_pairsD.push_back(std::make_pair(*it, *it));
+		}
+	}
+}
 
-std::vector<std::pair<int, int> >   PmergeMe::fordJohnsonSort(std::vector<std::pair<int, int> > & vec)   {
-	
+void	PmergeMe::swapPair(std::pair<int, int> & p)	{
+	int	tmp;
+
+	tmp = p.first;
+	p.first = p.second;
+	p.second = tmp;
+}
+
+std::vector<std::pair<int, int> >   PmergeMe::fordJohnsonSortV(std::vector<std::pair<int, int> > & vec)   {
 	std::vector<std::pair<int, int> >   tmp;
 	std::vector<std::pair<int, int> >   tmp1;
 	std::vector<std::pair<int, int> >   tmp2;
-	int                                 iTmp;
-	//bool                                imp = false;
-	
-	//if (vec.size() % 2 > 0)
-	//    imp = true;
-	tourIN++;
-	std::cout << " IN Tour : " << tourIN << std::endl;
-	for (std::vector<std::pair<int, int> >::iterator it = vec.begin(); it != vec.end(); ++it)    {
-		std::cout << it->first << " " << it->second << std::endl;
+	std::pair<int, int>   last;
+
+	// Swap pair
+	for (std::vector<std::pair<int, int> >::iterator it = vec.begin(); it != vec.end(); ++it)	{
+		if (it->first < it->second)
+			swapPair(*it);
 	}
-	std::cout << "----------------" << std::endl;
-	for (size_t i = 0; i < vec.size(); i++)   {
-		if (vec[i].first < vec[i].second)   {
-			iTmp = vec[i].first;
-			vec[i].first = vec[i].second;
-			vec[i].second = iTmp;
-		}
-	}
-	
-	 if (vec.size() <= 1)    {
+
+	if (vec.size() <= 1)
 		return (vec);
-	}
 	
-	for (size_t i = 0; i < vec.size(); i++)   {
-		if (i + 1 < vec.size()) {
-			tmp.push_back(std::make_pair(vec[i].first, vec[i + 1].first));
-			i++;
-		}
-		else    {
-			tmp.push_back(std::make_pair(vec[i].first, vec[i].first));
+	// Make pairs of first
+	for (std::vector<std::pair<int, int> >::iterator it = vec.begin(); it != vec.end(); ++it)	{
+		if (it + 1 != vec.end())	{
+			tmp.push_back(std::make_pair(it->first, (it + 1)->first));
+			++it;
 		}
 	}
 	
-	tmp1 = fordJohnsonSort(tmp);
+	tmp1 = fordJohnsonSortV(tmp);
 	
-	tourOUT++;
-	
-	int tmpSwt = 0;
-	
-	std::cout << " OUT Tour : " << tourOUT << std::endl;
-	for (std::vector<std::pair<int, int> >::iterator it = tmp1.begin(); it != tmp1.end(); ++it)    {
-		std::cout << it->first << " " << it->second << std::endl;
+	for (std::vector<std::pair<int, int> >::iterator it = tmp1.begin(); it != tmp1.end(); ++it)	{
+		for (std::vector<std::pair<int, int> >::iterator itf = vec.begin(); itf != vec.end(); ++itf)	{
+			if (it->first == itf->first)	{
+				tmp2.push_back(*itf);
+				break;
+			}
+		}
 	}
-	std::cout << "----------------" << std::endl;
-	if (vec.size() <= _pairsV.size())   {
-		for (std::vector<std::pair<int, int> >::iterator it = tmp1.begin(); it != tmp1.end(); ++it)    {
-			if (it + 1 != tmp1.end() && it->second < (it + 1)->second && (it->first != it->second && (it + 1)->first != (it + 1)->second))	{
-				tmpSwt = it->second;
-				it->second = (it + 1)->second;
-				(it + 1)->second = tmpSwt;
-			}	
-			for (std::vector<std::pair<int, int> >::iterator it1 = vec.begin(); it1 != vec.end(); ++it1)    {
-				if (it->first == it1->first)    {
-					tmp2.push_back(*it1);
+	for (std::vector<std::pair<int, int> >::iterator it = tmp1.begin(); it != tmp1.end(); ++it)	{
+		if (it->first != it->second)	{
+			for (std::vector<std::pair<int, int> >::iterator it1 = tmp2.begin(); it1 != tmp1.end(); ++it1)	{
+				if (it1 == tmp2.end())	{
+					for (std::vector<std::pair<int, int> >::iterator it2 = vec.begin(); it2 != vec.end(); ++it2)	{
+						if (it->second == it2->first)	{
+							tmp2.push_back(*it2);
+							break;
+						}
+					}
+					break;
+				}
+				else if (it->second > it1->first)	{
+					for (std::vector<std::pair<int, int> >::iterator it2 = vec.begin(); it2 != vec.end(); ++it2)	{
+						if (it->second == it2->first)	{
+							tmp2.insert(it1, *it2);
+							break;
+						}
+					}
+					break;
 				}
 			}
 		}
 	}
-	if (vec.size() <= _pairsV.size())   {
-		for (std::vector<std::pair<int, int> >::iterator it = tmp1.begin(); it != tmp1.end(); ++it)    {
-			for (std::vector<std::pair<int, int> >::iterator it2 = vec.begin(); it2 != vec.end(); ++it2)    {
-				if (it->first != it->second  && it->second == it2->first)    {
-					tmp2.push_back(*it2);
-				}
+	if (vec.size() % 2 == 1)	{
+		last = vec[vec.size() - 1];
+		for (std::vector<std::pair<int, int> >::iterator it = tmp2.begin(); it != tmp2.end(); ++it)	{
+			if (it + 1 == tmp2.end())	{
+				tmp2.push_back(last);
+				break;
+			}
+			else if (it->first < last.first)	{
+				tmp2.insert(it, last);
+				break;
 			}
 		}
 	}
-	std::cout << " BF return Tour : " << tourOUT << std::endl;
-	for (std::vector<std::pair<int, int> >::iterator it = tmp2.begin(); it != tmp2.end(); ++it)    {
-		std::cout << it->first << " " << it->second << std::endl;
-	}
-	std::cout << "----------------" << std::endl;
+
 	return (tmp2);
 }
 
-void    PmergeMe::mergeList(std::vector<int> & vec)	{
+std::deque<std::pair<int, int> >   PmergeMe::fordJohnsonSortD(std::deque<std::pair<int, int> > & vec)   {
+	std::deque<std::pair<int, int> >   tmp;
+	std::deque<std::pair<int, int> >   tmp1;
+	std::deque<std::pair<int, int> >   tmp2;
+	std::pair<int, int>   last;
+
+	// Swap pair
+	for (std::deque<std::pair<int, int> >::iterator it = vec.begin(); it != vec.end(); ++it)	{
+		if (it->first < it->second)
+			swapPair(*it);
+	}
+
+	if (vec.size() <= 1)
+		return (vec);
+	
+	// Make pairs of first
+	for (std::deque<std::pair<int, int> >::iterator it = vec.begin(); it != vec.end(); ++it)	{
+		if (it + 1 != vec.end())	{
+			tmp.push_back(std::make_pair(it->first, (it + 1)->first));
+			++it;
+		}
+	}
+	
+	tmp1 = fordJohnsonSortD(tmp);
+	
+	for (std::deque<std::pair<int, int> >::iterator it = tmp1.begin(); it != tmp1.end(); ++it)	{
+		for (std::deque<std::pair<int, int> >::iterator itf = vec.begin(); itf != vec.end(); ++itf)	{
+			if (it->first == itf->first)	{
+				tmp2.push_back(*itf);
+				break;
+			}
+		}
+	}
+	for (std::deque<std::pair<int, int> >::iterator it = tmp1.begin(); it != tmp1.end(); ++it)	{
+		if (it->first != it->second)	{
+			for (std::deque<std::pair<int, int> >::iterator it1 = tmp2.begin(); it1 != tmp1.end(); ++it1)	{
+				if (it1 == tmp2.end())	{
+					for (std::deque<std::pair<int, int> >::iterator it2 = vec.begin(); it2 != vec.end(); ++it2)	{
+						if (it->second == it2->first)	{
+							tmp2.push_back(*it2);
+							break;
+						}
+					}
+					break;
+				}
+				else if (it->second > it1->first)	{
+					for (std::deque<std::pair<int, int> >::iterator it2 = vec.begin(); it2 != vec.end(); ++it2)	{
+						if (it->second == it2->first)	{
+							tmp2.insert(it1, *it2);
+							break;
+						}
+					}
+					break;
+				}
+			}
+		}
+	}
+	if (vec.size() % 2 == 1)	{
+		last = vec[vec.size() - 1];
+		std::cout << "LAST = " << last.first << " " << last.second << std::endl;
+		for (std::deque<std::pair<int, int> >::iterator it = tmp2.begin(); it != tmp2.end(); ++it)	{
+			if (it + 1 == tmp2.end())	{
+				tmp2.push_back(last);
+				break;
+			}
+			else if (it->first < last.first)	{
+				tmp2.insert(it, last);
+				break;
+			}
+		}
+	}
+
+	return (tmp2);
+}
+
+void    PmergeMe::mergeListV(std::vector<int> & vec)	{
 	std::vector<std::pair<int, int> >	afterFJ;
 	std::vector<int>					res;
 	
 	createPairsV(vec);
-	afterFJ = fordJohnsonSort(_pairsV);
+	afterFJ = fordJohnsonSortV(_pairsV);
 	for (std::vector<std::pair<int, int> >::iterator it = afterFJ.begin(); it != afterFJ.end(); ++it)	{
 		res.push_back(it->first);
 	}
@@ -219,6 +320,29 @@ void    PmergeMe::mergeList(std::vector<int> & vec)	{
 	printResV(res);
 }
 
+void    PmergeMe::mergeListD(std::deque<int> & vec)	{
+	std::deque<std::pair<int, int> >	afterFJ;
+	std::deque<int>					res;
+	
+	createPairsD(vec);
+	afterFJ = fordJohnsonSortD(_pairsD);
+	for (std::deque<std::pair<int, int> >::iterator it = afterFJ.begin(); it != afterFJ.end(); ++it)	{
+		res.push_back(it->first);
+	}
+	for (std::deque<std::pair<int, int> >::iterator it = afterFJ.begin(); it != afterFJ.end(); ++it)	{
+		for(std::deque<int>::iterator it1 = res.begin(); it1 != res.end(); ++it1)	{
+			if (*it1 < it->second && it->first != it->second)	{
+				res.insert(it1, it->second);
+				break;
+			}
+			else if (it1 + 1 == res.end() && it->first != it->second)	{
+				res.push_back(it->second);
+				break;
+			}
+		}
+	}
+	printResD(res);
+}
 
 void    PmergeMe::printResV(std::vector<int> vPrint) {
 	std::string tmp = "";
@@ -232,4 +356,18 @@ void    PmergeMe::printResV(std::vector<int> vPrint) {
 	}
 
 	std::cout << "After with std::vector : " << tmp << std::endl;
+}
+
+void    PmergeMe::printResD(std::deque<int> vPrint) {
+	std::string tmp = "";
+	
+	for (std::deque<int>::iterator it = vPrint.begin(); it != vPrint.end(); ++it)    {
+		std::ostringstream  iss;
+		iss << *it;
+		
+		tmp += iss.str();
+		tmp += ' ';
+	}
+
+	std::cout << "After with std::deque : " << tmp << std::endl;
 }
